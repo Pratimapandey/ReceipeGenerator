@@ -6,6 +6,8 @@ using ReceipeGenerator.ViewModel;
 using System.Collections.Generic;
 using System.Linq;
 
+
+
 namespace ReceipeGenerator.Services.Implementation
 {
     public class ReceipeService : IReceipeService
@@ -41,95 +43,91 @@ namespace ReceipeGenerator.Services.Implementation
         }
         public Receipe CreateRecipe(Receipe recipeRequest)
         {
-
-            if (string.IsNullOrEmpty(recipeRequest.Title) || recipeRequest.Ingredients == null || recipeRequest.Ingredients.Count == 0)
+            // Check if the recipe request and its properties are valid
+            if (recipeRequest == null || string.IsNullOrEmpty(recipeRequest.Title) || recipeRequest.Ingredients == null || recipeRequest.Ingredients.Count == 0)
             {
-                return null;
+                return null; // If the recipe title or ingredients are missing, return null
             }
 
+            // Create a new recipe object
             var newRecipe = new Receipe
             {
-
                 Title = recipeRequest.Title,
                 Ingredients = new List<Ingredient>()
             };
 
+            // Loop through each ingredient in the recipe request
             foreach (var ingredientWithMeasurement in recipeRequest.Ingredients)
             {
+                // Check if the ingredient properties are valid
                 if (ingredientWithMeasurement != null &&
                     !string.IsNullOrEmpty(ingredientWithMeasurement.Name) &&
                     !string.IsNullOrEmpty(ingredientWithMeasurement.MeasurementUnit))
                 {
                     try
                     {
-                        if (_context != null)
+                        // Check if the ingredient already exists in the database
+                        var existingIngredient = _context.Ingredients.FirstOrDefault(i => i.Name == ingredientWithMeasurement.Name);
+
+                        // Create a new ingredient object
+                        var newIngredient = new Ingredient
                         {
-                            var ingredientName = ingredientWithMeasurement.Name;
-                            var measurementUnit = ingredientWithMeasurement.MeasurementUnit;
+                            Name = ingredientWithMeasurement.Name,
+                            MeasurementUnit = ingredientWithMeasurement.MeasurementUnit,
+                            QuantityPerServing = ingredientWithMeasurement.QuantityPerServing
+                        };
 
+                        // Add the new ingredient to the recipe
+                        newRecipe.Ingredients.Add(newIngredient);
 
-                            var existingIngredient = _context.Ingredients.FirstOrDefault(i => i.Name == ingredientName);
-
-                            if (existingIngredient != null)
-                            {
-                                newRecipe.Ingredients.Add(existingIngredient);
-                            }
-                            else
-                            {
-                                var newIngredient = new Ingredient
-                                {
-                                    Name = ingredientName,
-                                    MeasurementUnit = measurementUnit
-                                };
-                                _context.Ingredients.Add(newIngredient);
-
-                                newRecipe.Ingredients.Add(newIngredient);
-                            }
-                        }
-                        else
+                        // If the ingredient doesn't exist in the database, add it
+                        if (existingIngredient == null)
                         {
-
-                            throw new NullReferenceException("Database context is not available.");
+                            _context.Ingredients.Add(newIngredient);
                         }
                     }
                     catch (Exception ex)
                     {
-
                         Console.WriteLine($"Error processing ingredient: {ex.Message}");
                     }
                 }
                 else
                 {
-
                     Console.WriteLine("Invalid ingredient data encountered.");
                 }
             }
+
+            // Add the new recipe to the database
             _context.Receipes.Add(newRecipe);
             _context.SaveChanges();
+
             return newRecipe;
         }
 
-        public List<IngredientsViewModel> GetIngredientsForRecipeTitle(string recipeTitle)
-        {
-            var normalizedTitle = recipeTitle.ToUpper();
 
-            var recipe = _context.Receipes
-                .Include(r => r.Ingredients)
-                .FirstOrDefault(r => r.Title.ToUpper() == normalizedTitle);
+
+
+        public List<Ingredient> GetIngredientsForRecipeTitle(string recipeTitle, int servings)
+        {
+            // Retrieve the recipe based on the provided title
+            var recipe = _context.Receipes.Include(r => r.Ingredients)
+                                           .FirstOrDefault(r => r.Title.Trim().ToLower() == recipeTitle.Trim().ToLower());
 
             if (recipe == null)
             {
-                return new List<IngredientsViewModel>();
+                throw new Exception($"Recipe with title '{recipeTitle}' not found.");
             }
 
-            var ingredientsViewModel = recipe.Ingredients.Select(i => new IngredientsViewModel
+            // Adjust the quantity per serving based on the provided servings
+            foreach (var ingredient in recipe.Ingredients)
             {
-                Name = i.Name,
-                MeasurementUnit = i.MeasurementUnit
-            }).ToList();
+                ingredient.QuantityPerServing *= servings;
+            }
 
-            return ingredientsViewModel;
+            // Return the adjusted ingredients
+            return recipe.Ingredients;
         }
+
 
 
         public bool CreateFestival(FestivalViewModel festivalData)

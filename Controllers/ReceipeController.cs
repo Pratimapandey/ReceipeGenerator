@@ -18,37 +18,44 @@ namespace ReceipeGenerator.Controllers
             _recipeService = recipeService;
             _context = context;
         }
-
         [HttpPost("create")]
-        public IActionResult CreateRecipe(Receipe recipeRequest)
+        public IActionResult CreateRecipe([FromBody] Receipe recipeRequest)
         {
-            // Validate request
-            if (string.IsNullOrEmpty(recipeRequest.Title) || recipeRequest.Ingredients == null || recipeRequest.Ingredients.Count == 0)
+            try
             {
-                return BadRequest("Recipe title and ingredients are required.");
+                // Create the recipe using the service
+                var newRecipe = _recipeService.CreateRecipe(recipeRequest);
+                return Ok(newRecipe);
             }
-
-            // Create the recipe using the service
-            var newRecipe = _recipeService.CreateRecipe(recipeRequest);
-
-            return Ok(newRecipe);
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
         }
 
         [HttpGet("ingredients")]
-        public IActionResult GetIngredientsForRecipeTitle([FromQuery] string recipeTitle)
+        public IActionResult GetIngredientsForRecipeTitle([FromQuery] string recipeTitle, [FromQuery] int servings)
         {
             if (string.IsNullOrEmpty(recipeTitle))
             {
                 return BadRequest("Recipe title is required.");
             }
 
-            var ingredients = _recipeService.GetIngredientsForRecipeTitle(recipeTitle);
-            if (ingredients == null)
+            try
             {
-                return NotFound($"Recipe with title '{recipeTitle}' not found.");
+                var ingredients = _recipeService.GetIngredientsForRecipeTitle(recipeTitle, servings);
+                return Ok(ingredients);
             }
-            return Ok(ingredients);
+            catch (Exception ex)
+            {
+                return NotFound($"Recipe with title '{recipeTitle}' not found. Error: {ex.Message}");
+            }
         }
+
 
         [HttpPost("festival")]
         public IActionResult CreateFestival([FromBody] FestivalViewModel festivalData)

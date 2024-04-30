@@ -6,7 +6,7 @@ namespace ReceipeGenerator.Services.Interface
 {
     public interface IReceipeService
     {
-        List<IngredientsViewModel> GetIngredientsForRecipeTitle(string recipeTitle);
+        List<Ingredient> GetIngredientsForRecipeTitle(string recipeTitle, int servings);
         Receipe CreateRecipe(Receipe recipeRequest);
         FestivalViewModel GetRecipesForFestival(string festivalName);
         bool CreateFestival(FestivalViewModel festivalData);

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ReceipeGenerator.Migrations
 {
-    public partial class initial : Migration
+    public partial class a : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -51,29 +51,17 @@ namespace ReceipeGenerator.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "IngredientRequests",
+                name: "Festivals",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Receipes",
-                columns: table => new
-                {
-                    ReceipeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CookingTime = table.Column<int>(type: "int", nullable: false),
-                    DifficultyLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Instructions = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Season = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Receipes", x => x.ReceipeId);
+                    table.PrimaryKey("PK_Festivals", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -183,6 +171,70 @@ namespace ReceipeGenerator.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Receipes",
+                columns: table => new
+                {
+                    ReceipeId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FestivalId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Receipes", x => x.ReceipeId);
+                    table.ForeignKey(
+                        name: "FK_Receipes_Festivals_FestivalId",
+                        column: x => x.FestivalId,
+                        principalTable: "Festivals",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReceipeFestivals",
+                columns: table => new
+                {
+                    ReceipeFestivalId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReceipeId = table.Column<int>(type: "int", nullable: false),
+                    FestivalId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReceipeFestivals", x => x.ReceipeFestivalId);
+                    table.ForeignKey(
+                        name: "FK_ReceipeFestivals_Festivals_FestivalId",
+                        column: x => x.FestivalId,
+                        principalTable: "Festivals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReceipeFestivals_Receipes_ReceipeId",
+                        column: x => x.ReceipeId,
+                        principalTable: "Receipes",
+                        principalColumn: "ReceipeId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RecipeCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReceipeId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecipeCategories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RecipeCategories_Receipes_ReceipeId",
+                        column: x => x.ReceipeId,
+                        principalTable: "Receipes",
+                        principalColumn: "ReceipeId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Ingredients",
                 columns: table => new
                 {
@@ -190,16 +242,17 @@ namespace ReceipeGenerator.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MeasurementUnit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReceipeId = table.Column<int>(type: "int", nullable: true)
+                    QuantityPerServing = table.Column<double>(type: "float", nullable: false),
+                    RecipeCategoryId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Ingredients", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Ingredients_Receipes_ReceipeId",
-                        column: x => x.ReceipeId,
-                        principalTable: "Receipes",
-                        principalColumn: "ReceipeId");
+                        name: "FK_Ingredients_RecipeCategories_RecipeCategoryId",
+                        column: x => x.RecipeCategoryId,
+                        principalTable: "RecipeCategories",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -242,8 +295,28 @@ namespace ReceipeGenerator.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Ingredients_ReceipeId",
+                name: "IX_Ingredients_RecipeCategoryId",
                 table: "Ingredients",
+                column: "RecipeCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReceipeFestivals_FestivalId",
+                table: "ReceipeFestivals",
+                column: "FestivalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReceipeFestivals_ReceipeId",
+                table: "ReceipeFestivals",
+                column: "ReceipeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Receipes_FestivalId",
+                table: "Receipes",
+                column: "FestivalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecipeCategories_ReceipeId",
+                table: "RecipeCategories",
                 column: "ReceipeId");
         }
 
@@ -265,10 +338,10 @@ namespace ReceipeGenerator.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "IngredientRequests");
+                name: "Ingredients");
 
             migrationBuilder.DropTable(
-                name: "Ingredients");
+                name: "ReceipeFestivals");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -277,7 +350,13 @@ namespace ReceipeGenerator.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
+                name: "RecipeCategories");
+
+            migrationBuilder.DropTable(
                 name: "Receipes");
+
+            migrationBuilder.DropTable(
+                name: "Festivals");
         }
     }
 }

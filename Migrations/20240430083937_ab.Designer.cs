@@ -12,8 +12,8 @@ using ReceipeGenerator.Data;
 namespace ReceipeGenerator.Migrations
 {
     [DbContext(typeof(ReceipeDbContext))]
-    [Migration("20240424085626_dfsdfhhjj")]
-    partial class dfsdfhhjj
+    [Migration("20240430083937_ab")]
+    partial class ab
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -229,6 +229,27 @@ namespace ReceipeGenerator.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("ReceipeGenerator.Model.Festival", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Season")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Festivals");
+                });
+
             modelBuilder.Entity("ReceipeGenerator.Model.Ingredient", b =>
                 {
                     b.Property<int>("Id")
@@ -245,17 +266,15 @@ namespace ReceipeGenerator.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ReceipeId")
-                        .HasColumnType("int");
+                    b.Property<double>("QuantityPerServing")
+                        .HasColumnType("float");
 
-                    b.Property<int?>("RecipeCreationRequestId")
+                    b.Property<int?>("RecipeCategoryId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReceipeId");
-
-                    b.HasIndex("RecipeCreationRequestId");
+                    b.HasIndex("RecipeCategoryId");
 
                     b.ToTable("Ingredients");
                 });
@@ -268,16 +287,8 @@ namespace ReceipeGenerator.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceipeId"), 1L, 1);
 
-                    b.Property<int>("CookingTime")
+                    b.Property<int?>("FestivalId")
                         .HasColumnType("int");
-
-                    b.Property<string>("DifficultyLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Instructions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -285,10 +296,35 @@ namespace ReceipeGenerator.Migrations
 
                     b.HasKey("ReceipeId");
 
+                    b.HasIndex("FestivalId");
+
                     b.ToTable("Receipes");
                 });
 
-            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCreationRequest", b =>
+            modelBuilder.Entity("ReceipeGenerator.Model.ReceipeFestival", b =>
+                {
+                    b.Property<int>("ReceipeFestivalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceipeFestivalId"), 1L, 1);
+
+                    b.Property<int>("FestivalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReceipeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReceipeFestivalId");
+
+                    b.HasIndex("FestivalId");
+
+                    b.HasIndex("ReceipeId");
+
+                    b.ToTable("ReceipeFestivals");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -296,13 +332,18 @@ namespace ReceipeGenerator.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("RecipeTitle")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ReceipeId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.ToTable("RecipeCreationRequests");
+                    b.HasIndex("ReceipeId");
+
+                    b.ToTable("RecipeCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -358,21 +399,55 @@ namespace ReceipeGenerator.Migrations
 
             modelBuilder.Entity("ReceipeGenerator.Model.Ingredient", b =>
                 {
-                    b.HasOne("ReceipeGenerator.Model.Receipe", null)
+                    b.HasOne("ReceipeGenerator.Model.RecipeCategory", null)
                         .WithMany("Ingredients")
-                        .HasForeignKey("ReceipeId");
-
-                    b.HasOne("ReceipeGenerator.Model.RecipeCreationRequest", null)
-                        .WithMany("Ingredients")
-                        .HasForeignKey("RecipeCreationRequestId");
+                        .HasForeignKey("RecipeCategoryId");
                 });
 
             modelBuilder.Entity("ReceipeGenerator.Model.Receipe", b =>
                 {
-                    b.Navigation("Ingredients");
+                    b.HasOne("ReceipeGenerator.Model.Festival", null)
+                        .WithMany("Recipes")
+                        .HasForeignKey("FestivalId");
                 });
 
-            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCreationRequest", b =>
+            modelBuilder.Entity("ReceipeGenerator.Model.ReceipeFestival", b =>
+                {
+                    b.HasOne("ReceipeGenerator.Model.Festival", "Festival")
+                        .WithMany()
+                        .HasForeignKey("FestivalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ReceipeGenerator.Model.Receipe", "Receipe")
+                        .WithMany()
+                        .HasForeignKey("ReceipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Festival");
+
+                    b.Navigation("Receipe");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCategory", b =>
+                {
+                    b.HasOne("ReceipeGenerator.Model.Receipe", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("ReceipeId");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.Festival", b =>
+                {
+                    b.Navigation("Recipes");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.Receipe", b =>
+                {
+                    b.Navigation("Categories");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCategory", b =>
                 {
                     b.Navigation("Ingredients");
                 });

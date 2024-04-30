@@ -267,12 +267,12 @@ namespace ReceipeGenerator.Migrations
                     b.Property<double>("QuantityPerServing")
                         .HasColumnType("float");
 
-                    b.Property<int?>("ReceipeId")
+                    b.Property<int?>("RecipeCategoryId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReceipeId");
+                    b.HasIndex("RecipeCategoryId");
 
                     b.ToTable("Ingredients");
                 });
@@ -320,6 +320,28 @@ namespace ReceipeGenerator.Migrations
                     b.HasIndex("ReceipeId");
 
                     b.ToTable("ReceipeFestivals");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ReceipeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceipeId");
+
+                    b.ToTable("RecipeCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -375,9 +397,9 @@ namespace ReceipeGenerator.Migrations
 
             modelBuilder.Entity("ReceipeGenerator.Model.Ingredient", b =>
                 {
-                    b.HasOne("ReceipeGenerator.Model.Receipe", null)
+                    b.HasOne("ReceipeGenerator.Model.RecipeCategory", null)
                         .WithMany("Ingredients")
-                        .HasForeignKey("ReceipeId");
+                        .HasForeignKey("RecipeCategoryId");
                 });
 
             modelBuilder.Entity("ReceipeGenerator.Model.Receipe", b =>
@@ -406,12 +428,24 @@ namespace ReceipeGenerator.Migrations
                     b.Navigation("Receipe");
                 });
 
+            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCategory", b =>
+                {
+                    b.HasOne("ReceipeGenerator.Model.Receipe", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("ReceipeId");
+                });
+
             modelBuilder.Entity("ReceipeGenerator.Model.Festival", b =>
                 {
                     b.Navigation("Recipes");
                 });
 
             modelBuilder.Entity("ReceipeGenerator.Model.Receipe", b =>
+                {
+                    b.Navigation("Categories");
+                });
+
+            modelBuilder.Entity("ReceipeGenerator.Model.RecipeCategory", b =>
                 {
                     b.Navigation("Ingredients");
                 });

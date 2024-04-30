@@ -1,15 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ReceipeGenerator.Model
+namespace ReceipeGenerator.ViewModel
 {
-    public class Ingredient
+    public class ReceipeCategoryIngredients
     {
-        [Key]
-        public int Id { get; set; }
         public string Name { get; set; }
         public string MeasurementUnit { get; set; }
         public double QuantityPerServing { get; set; }
-        
-
     }
 }

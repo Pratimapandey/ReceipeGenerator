@@ -10,10 +10,11 @@ namespace ReceipeGenerator.Model
         public int ReceipeId { get; set; }
         public string Title { get; set; }
         
-       public List<Ingredient> Ingredients { get; set; }
+       //public List<Ingredient> Ingredients { get; set; }
+        public List<RecipeCategory> Categories { get; set; }
 
 
-       
+
 
     }
 }

@@ -4,7 +4,7 @@
 
 namespace ReceipeGenerator.Migrations
 {
-    public partial class kksk : Migration
+    public partial class ab : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

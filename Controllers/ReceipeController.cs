@@ -18,13 +18,29 @@ namespace ReceipeGenerator.Controllers
             _recipeService = recipeService;
             _context = context;
         }
+
+
+        [HttpGet("all")]
+        public IActionResult GetAllRecipes()
+        {
+            try
+            {
+                var recipes = _recipeService.GetAllRecipes();
+                return Ok(recipes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while retrieving recipes: {ex.Message}");
+            }
+        }
+
         [HttpPost("create")]
-        public IActionResult CreateRecipe([FromBody] Receipe recipeRequest)
+        public IActionResult CreateRecipe([FromBody] CreateRecipeRequest request)
         {
             try
             {
                 // Create the recipe using the service
-                var newRecipe = _recipeService.CreateRecipe(recipeRequest);
+                var newRecipe = _recipeService.CreateRecipe(request);
                 return Ok(newRecipe);
             }
             catch (ArgumentException ex)
@@ -36,53 +52,93 @@ namespace ReceipeGenerator.Controllers
                 return StatusCode(500, "An error occurred while processing the request.");
             }
         }
-
         [HttpGet("ingredients")]
-        public IActionResult GetIngredientsForRecipeTitle([FromQuery] string recipeTitle, [FromQuery] int servings)
+        public IActionResult GetIngredientsForRecipeTitle([FromQuery] string recipeTitle, [FromQuery] string categoryName, [FromQuery] int servings)
         {
-            if (string.IsNullOrEmpty(recipeTitle))
+            if (string.IsNullOrEmpty(recipeTitle) || string.IsNullOrEmpty(categoryName))
             {
-                return BadRequest("Recipe title is required.");
+                return BadRequest("Recipe title and category name are required.");
             }
 
             try
             {
-                var ingredients = _recipeService.GetIngredientsForRecipeTitle(recipeTitle, servings);
+                var ingredients = _recipeService.GetIngredientsForRecipeTitle(recipeTitle, categoryName, servings);
                 return Ok(ingredients);
             }
             catch (Exception ex)
             {
-                return NotFound($"Recipe with title '{recipeTitle}' not found. Error: {ex.Message}");
+                return NotFound($"Recipe with title '{recipeTitle}' or category '{categoryName}' not found. Error: {ex.Message}");
             }
         }
 
-
-        [HttpPost("festival")]
-        public IActionResult CreateFestival([FromBody] FestivalViewModel festivalData)
+        [HttpPut("recipes/{id}")]
+        public IActionResult UpdateRecipe(int id, [FromBody] Receipe updatedRecipe)
         {
             try
             {
-                var result = _recipeService.CreateFestival(festivalData);
-                return Ok(result);
+                updatedRecipe.ReceipeId = id; // Ensure the ID is set correctly
+                var updatedRecipeResult = _recipeService.UpdateRecipe(updatedRecipe);
+                if (updatedRecipeResult == null)
+                {
+                    return NotFound($"Recipe with ID '{id}' not found.");
+                }
+                return Ok(updatedRecipeResult);
             }
             catch (Exception ex)
             {
-                return BadRequest($"Failed to create festival: {ex.Message}");
+                return StatusCode(500, $"An error occurred while updating the recipe: {ex.Message}");
             }
         }
 
-        [HttpGet("festival/{festivalName}")]
-        public IActionResult GetRecipesForFestival(string festivalName)
+        [HttpDelete("recipes/{id}")]
+        public IActionResult DeleteRecipe(int id)
         {
-            var festivalData = _recipeService.GetRecipesForFestival(festivalName);
-
-            if (festivalData == null)
+            try
             {
-                return NotFound($"Festival with name '{festivalName}' not found.");
+                var isDeleted = _recipeService.DeleteRecipe(id);
+                if (!isDeleted)
+                {
+                    return NotFound($"Recipe with ID '{id}' not found.");
+                }
+                return Ok("Recipe deleted successfully.");
             }
-
-            return Ok(festivalData);
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while deleting the recipe: {ex.Message}");
+            }
         }
+
+
+
+
+
+
+        //[HttpPost("festival")]
+        //public IActionResult CreateFestival([FromBody] FestivalViewModel festivalData)
+        //{
+        //    try
+        //    {
+        //        var result = _recipeService.CreateFestival(festivalData);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest($"Failed to create festival: {ex.Message}");
+        //    }
+        //}
+
+        //[HttpGet("festival/{festivalName}")]
+        //public IActionResult GetRecipesForFestival(string festivalName)
+        //{
+        //    var festivalData = _recipeService.GetRecipesForFestival(festivalName);
+
+        //    if (festivalData == null)
+        //    {
+        //        return NotFound($"Festival with name '{festivalName}' not found.");
+        //    }
+
+        //    return Ok(festivalData);
+        //}
 
 
         //[HttpGet("recipes")]

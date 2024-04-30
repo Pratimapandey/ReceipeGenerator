@@ -2,14 +2,11 @@
 
 namespace ReceipeGenerator.Model
 {
-    public class Ingredient
+    public class RecipeCategory
     {
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
-        public string MeasurementUnit { get; set; }
-        public double QuantityPerServing { get; set; }
-        
-
+        public List<Ingredient> Ingredients { get; set; }
     }
 }

@@ -38,6 +38,16 @@ namespace ReceipeGenerator
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ReceipeGenerator API", Version = "v1" });
             });
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+
 
             builder.Services.AddAuthentication(options =>
             {
@@ -80,6 +90,7 @@ namespace ReceipeGenerator
 
 
             app.MapControllers();
+            app.UseCors("AllowAll");
 
             app.Run();
         }

@@ -11,6 +11,8 @@ namespace ReceipeGenerator.Services.Interface
         Receipe CreateRecipe(CreateRecipeRequest request);
         Receipe UpdateRecipe(Receipe updatedRecipe);
         bool DeleteRecipe(int id);
+        
+
         //    FestivalViewModel GetRecipesForFestival(string festivalName);
         //    bool CreateFestival(FestivalViewModel festivalData);
         //}

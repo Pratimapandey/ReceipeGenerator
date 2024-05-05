@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ReceipeGenerator.Data;
 using ReceipeGenerator.Model;
+using ReceipeGenerator.Services.Implementation;
 using ReceipeGenerator.Services.Interface;
 using ReceipeGenerator.ViewModel;
+
 
 namespace ReceipeGenerator.Controllers
 {
@@ -18,14 +21,13 @@ namespace ReceipeGenerator.Controllers
             _recipeService = recipeService;
             _context = context;
         }
-
-
-        [HttpGet("all")]
+        [HttpGet("all-recipes")]
         public IActionResult GetAllRecipes()
         {
             try
             {
-                var recipes = _recipeService.GetAllRecipes();
+                // Eagerly load Categories related to each Receipe
+                var recipes = _context.Receipes.Include(r => r.Categories).ToList();
                 return Ok(recipes);
             }
             catch (Exception ex)
@@ -34,7 +36,8 @@ namespace ReceipeGenerator.Controllers
             }
         }
 
-        [HttpPost("create")]
+
+        [HttpPost("create-recipe")]
         public IActionResult CreateRecipe([FromBody] CreateRecipeRequest request)
         {
             try
@@ -76,7 +79,7 @@ namespace ReceipeGenerator.Controllers
         {
             try
             {
-                updatedRecipe.ReceipeId = id; // Ensure the ID is set correctly
+                updatedRecipe.ReceipeId = id; 
                 var updatedRecipeResult = _recipeService.UpdateRecipe(updatedRecipe);
                 if (updatedRecipeResult == null)
                 {
@@ -107,70 +110,6 @@ namespace ReceipeGenerator.Controllers
                 return StatusCode(500, $"An error occurred while deleting the recipe: {ex.Message}");
             }
         }
-
-
-
-
-
-
-        //[HttpPost("festival")]
-        //public IActionResult CreateFestival([FromBody] FestivalViewModel festivalData)
-        //{
-        //    try
-        //    {
-        //        var result = _recipeService.CreateFestival(festivalData);
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest($"Failed to create festival: {ex.Message}");
-        //    }
-        //}
-
-        //[HttpGet("festival/{festivalName}")]
-        //public IActionResult GetRecipesForFestival(string festivalName)
-        //{
-        //    var festivalData = _recipeService.GetRecipesForFestival(festivalName);
-
-        //    if (festivalData == null)
-        //    {
-        //        return NotFound($"Festival with name '{festivalName}' not found.");
-        //    }
-
-        //    return Ok(festivalData);
-        //}
-
-
-        //[HttpGet("recipes")]
-        //public IActionResult GetRecipesForFestival(string festivalName)
-        //{
-        //    var recipes = _context.ReceipeFestivals
-        //        .Where(rf => rf.Festival.Name == festivalName)
-        //        .Select(rf => rf.Receipe)
-        //        .ToList();
-
-        //    return Ok(recipes);
-        //}
-        //[HttpPost("recipes/{festivalName}")]
-        //public IActionResult PostRecipesForFestival(string festivalName, [FromBody] List<string> recipeNames)
-        //{
-        //    if (string.IsNullOrEmpty(festivalName) || recipeNames == null || recipeNames.Count == 0)
-        //    {
-        //        return BadRequest("Festival name and recipe names are required.");
-        //    }
-
-        //    var result = _recipeService.PostRecipesForFestival(festivalName, recipeNames);
-
-        //    if (!result)
-        //    {
-        //        return BadRequest("Failed to post recipes for the festival.");
-        //    }
-
-        //    return Ok("Recipes posted for the festival successfully.");
-        //}
-
-
-
-
     }
+
 }

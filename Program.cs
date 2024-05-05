@@ -32,7 +32,8 @@ namespace ReceipeGenerator
                .AddDefaultTokenProviders()
                .AddEntityFrameworkStores<ReceipeDbContext>();
 
-            builder.Services.AddScoped<IReceipeService, ReceipeService>(); // Register the employee service
+            builder.Services.AddScoped<IReceipeService, ReceipeService>();
+            builder.Services.AddScoped<FestivalService>();
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ReceipeGenerator API", Version = "v1" });
